@@ -11,3 +11,27 @@ model.py: Contains the model architecture implementation
 dataset.py: Contains the dataset implementation with patch-based processing
 train.py: Contains the training pipeline with distributed training support
 config.py: Contains configuration settings
+
+"""
+Recommended project structure:
+
+hydro_segmentation/
+├── config.py
+├── dataset.py
+├── model.py
+├── train.py
+├── visualization.py
+└── requirements.txt
+"""
+
+# requirements.txt
+"""
+torch>=1.8.0
+numpy>=1.19.0
+cupy>=9.0.0
+zarr>=2.8.0
+tqdm>=4.60.0
+matplotlib>=3.4.0
+optuna>=2.10.0
+"""
+
