@@ -34,4 +34,20 @@ tqdm>=4.60.0
 matplotlib>=3.4.0
 optuna>=2.10.0
 """
+Model Architecture:
+TemporalAttentionBlock, EncoderBlock, DecoderBlock, CrossAttentionFusion, and SkipConnectionHandler:
+These classes build the backbone of a 3D U-Net that incorporates temporal attention. The model is designed to fuse two sensor streams (e.g., Sentinel-1 and Sentinel-2) at various levels (“early”, “mid”, or “late”) using either simple concatenation or an attention mechanism.
+TemporalAttentionUNET3D:
+This class wraps the encoder/decoder paths and handles the fusion strategy. It takes a configuration dictionary (with keys like fusion_type, fusion_level, etc.) and constructs the network accordingly.
+Dataset Handling:
+EnhancedZarrTileDataset:
+This dataset class uses the zarr library to load patches from satellite data. It handles dynamic parameters (such as patch size from hyperparameter tuning), normalization (while masking out no-data values), and temporal padding/cleaning. It prepares the data for two streams (S1 and S2) along with the corresponding label patches.
+Visualization Utilities:
+A set of functions (e.g., visualize_single_patch and visualize_temporal_sequence) are provided to inspect individual patches and their temporal evolution. There are also helper functions to compute basic data statistics and to validate the dataset visually.
+Training Pipeline:
+The training script leverages distributed training using PyTorch’s DDP (DistributedDataParallel) and supports multi-GPU setups. It also integrates Optuna for hyperparameter tuning.
+The code sets up data loaders with distributed samplers, configures the optimizer and learning rate scheduler (with options for cosine annealing or plateau reduction), and implements early stopping based on a patience parameter.
+Metrics are updated and saved during training, and model checkpoints are stored when a new best validation loss is achieved.
+Configuration Management:
+The Config class holds file paths, fixed parameters (like batch size, learning rate, etc.), and a hyperparameter search space. It also handles creating necessary output directories and determining the optimal number of data loading workers.
 
