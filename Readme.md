@@ -1,1 +1,109 @@
+# Dual-Stream UNET3D for Satellite Image Segmentation
 
+This repository contains a distributed training pipeline for a dual-stream satellite image segmentation model. The implementation leverages PyTorch's DistributedDataParallel (DDP), GPU-accelerated preprocessing using CuPy, and hyperparameter optimization via Optuna.
+
+> **Note**: The provided model (DualStreamUNET3D) is a placeholder. Replace it with your actual model architecture when deploying in production.
+
+## Overview
+
+The code in this repository performs the following tasks:
+
+- **`model.py`**: Contains the model architecture implementation
+- **`dataset.py`**: Contains the dataset implementation with patch-based processing  
+- **`train.py`**: Contains the training pipeline with distributed training support
+- **`config.py`**: Contains configuration settings
+
+## Project Structure
+
+```
+hydro_segmentation/
+├── config.py
+├── dataset.py
+├── model.py
+├── train.py
+├── visualization.py
+└── requirements.txt
+```
+
+## Requirements
+
+```txt
+torch>=1.8.0
+numpy>=1.19.0
+cupy>=9.0.0
+zarr>=2.8.0
+tqdm>=4.60.0
+matplotlib>=3.4.0
+optuna>=2.10.0
+```
+
+## Model Architecture
+
+### Core Components
+
+**TemporalAttentionBlock, EncoderBlock, DecoderBlock, CrossAttentionFusion, and SkipConnectionHandler:**
+These classes build the backbone of a 3D U-Net that incorporates temporal attention. The model is designed to fuse two sensor streams (e.g., Sentinel-1 and Sentinel-2) at various levels ("early", "mid", or "late") using either simple concatenation or an attention mechanism.
+
+**TemporalAttentionUNET3D:**
+This class wraps the encoder/decoder paths and handles the fusion strategy. It takes a configuration dictionary (with keys like `fusion_type`, `fusion_level`, etc.) and constructs the network accordingly.
+
+## Dataset Handling
+
+**EnhancedZarrTileDataset:**
+This dataset class uses the zarr library to load patches from satellite data. It handles dynamic parameters (such as patch size from hyperparameter tuning), normalization (while masking out no-data values), and temporal padding/cleaning. It prepares the data for two streams (S1 and S2) along with the corresponding label patches.
+
+## Visualization Utilities
+
+A set of functions (e.g., `visualize_single_patch` and `visualize_temporal_sequence`) are provided to inspect individual patches and their temporal evolution. There are also helper functions to compute basic data statistics and to validate the dataset visually.
+
+## Training Pipeline
+
+The training script leverages distributed training using PyTorch's DDP (DistributedDataParallel) and supports multi-GPU setups. It also integrates Optuna for hyperparameter tuning.
+
+Key features:
+- Data loaders with distributed samplers
+- Configurable optimizer and learning rate scheduler (with options for cosine annealing or plateau reduction)
+- Early stopping based on a patience parameter
+- Metrics tracking and saving during training
+- Model checkpoints stored when achieving new best validation loss
+
+## Configuration Management
+
+The `Config` class holds file paths, fixed parameters (like batch size, learning rate, etc.), and a hyperparameter search space. It also handles creating necessary output directories and determining the optimal number of data loading workers.
+
+## Usage
+
+### Environment Setup
+```bash
+pip install -r requirements.txt
+```
+
+### Training
+```python
+# Single GPU training
+python train.py
+
+# Multi-GPU distributed training
+torchrun --nproc_per_node=4 train.py
+```
+
+### Hyperparameter Optimization
+The training pipeline includes Optuna integration for automated hyperparameter tuning. Configure your search space in `config.py` and run the optimization process.
+
+## Key Features
+
+- **Distributed Training**: Multi-GPU support with PyTorch DDP
+- **GPU-Accelerated Preprocessing**: CuPy integration for faster data processing
+- **Temporal Attention**: 3D U-Net with temporal modeling capabilities
+- **Dual-Stream Fusion**: Support for multi-sensor data fusion (Sentinel-1/Sentinel-2)
+- **Hyperparameter Optimization**: Automated tuning with Optuna
+- **Flexible Configuration**: Easy-to-modify configuration management
+- **Visualization Tools**: Built-in utilities for data inspection and validation
+
+## Model Fusion Strategies
+
+The model supports multiple fusion approaches:
+- **Early Fusion**: Concatenate sensor streams at input level
+- **Mid Fusion**: Fuse at intermediate feature levels
+- **Late Fusion**: Combine at final prediction stage
+- **Attention-based Fusion**: Use cross-attention mechanisms for intelligent feature combinat
